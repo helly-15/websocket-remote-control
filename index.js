@@ -1,7 +1,7 @@
 import Jimp from 'jimp';
 import {httpServer} from './src/http_server/index.js';
 import robot from 'robotjs';
-import { WebSocketServer } from 'ws';
+import {WebSocketServer} from 'ws';
 
 const HTTP_PORT = 3000;
 
@@ -13,43 +13,71 @@ const wss = new WebSocketServer({
     port: 8080
 });
 
-wss.on('connection', ws=>{
+wss.on('connection', ws => {
     console.log('connection accepted')
     ws.send('connection settled');
 
-    ws.on('message',async wsData => {
+    ws.on('message', async wsData => {
         let mousePos = robot.getMousePos();
         const data = wsData.toString().split(' ');
         let moveDirection = data[0];
         let movePixels = data[1];
-        switch (moveDirection){
+        switch (moveDirection) {
             case 'mouse_up':
-                console.log ('mouse up');
-                robot.moveMouse(mousePos.x, mousePos.y-Number(movePixels));
+                robot.moveMouse(mousePos.x, mousePos.y - Number(movePixels));
                 break;
             case 'mouse_down':
-                console.log ('mouse down');
-                robot.moveMouse(mousePos.x,mousePos.y+ Number(movePixels));
+                robot.moveMouse(mousePos.x, mousePos.y + Number(movePixels));
                 break;
             case 'mouse_left':
-                console.log ('mouse left');
-                robot.moveMouse(mousePos.x-Number(movePixels), mousePos.y);
+                robot.moveMouse(mousePos.x - Number(movePixels), mousePos.y);
                 break;
             case 'mouse_right':
-                console.log ('mouse right');
                 robot.moveMouse(mousePos.x + Number(movePixels), mousePos.y);
                 break;
             case 'mouse_position':
-                console.log ('mouse position');
                 ws.send(`mouse_position ${mousePos.x},${mousePos.y}`);
                 break;
+            case 'draw_circle':
+                const x = mousePos.x + (Number(movePixels));
+                const y = mousePos.y;
+                robot.dragMouse(x, y);
+                robot.mouseToggle("down");
+                for (let i = 0; i <= Math.PI * 2; i += 0.01) {
+                    // Convert polar coordinates to cartesian
+                    const x = mousePos.x + (Number(movePixels) * Math.cos(i));
+                    const y = mousePos.y + (Number(movePixels) * Math.sin(i));
+                    robot.dragMouse(x, y);
+                }
+                robot.mouseToggle("up");
+                break;
+            case 'draw_square':
+
+                robot.mouseToggle("down");
+                robot.dragMouse(mousePos.x + Number(movePixels), mousePos.y);
+                mousePos = robot.getMousePos();
+                robot.dragMouse(mousePos.x, mousePos.y - Number(movePixels));
+                mousePos = robot.getMousePos();
+                robot.dragMouse(mousePos.x - Number(movePixels), mousePos.y);
+                mousePos = robot.getMousePos();
+                robot.dragMouse(mousePos.x, mousePos.y + Number(movePixels));
+                robot.mouseToggle("up");
+                break;
+            case 'draw_rectangle':
+                let movePixelsHeight = data[2];
+                console.log('draw_rectangle');
+
+                break;
             default:
-                console.log ('error occurred');
+                console.log('error occurred');
         }
     });
 
 });
-wss.on('close',()=>{
+process.on('SIGINT', () => {
+    wss.close();
+})
+wss.on('close', () => {
     console.log('wss closed')
 })
 
