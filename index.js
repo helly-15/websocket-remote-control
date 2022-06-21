@@ -23,6 +23,7 @@ wss.on('connection', ws => {
         const data = wsData.toString().split(' ');
         let moveDirection = data[0];
         let movePixels = Number(data[1]);
+        console.log(moveDirection)
         switch (moveDirection) {
             case 'mouse_up':
                 robot.moveMouse(mousePos.x, mousePos.y - movePixels);
@@ -52,12 +53,11 @@ wss.on('connection', ws => {
                 robot.mouseToggle("up");
                 break;
             case 'draw_square':
-                drawRect(movePixels,movePixels)
+                 drawRect(robot, mousePos, movePixels, movePixels)
                 break;
             case 'draw_rectangle':
                 let movePixelsHeight = Number(data[2]);
-                console.log('draw_rectangle');
-                drawRect(movePixels,movePixelsHeight)
+                drawRect(robot, mousePos, movePixels,movePixelsHeight)
                 break;
             default:
                 console.log('error occurred');
