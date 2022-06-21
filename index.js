@@ -39,6 +39,10 @@ wss.on('connection', ws=>{
                 console.log ('mouse right');
                 robot.moveMouse(mousePos.x + Number(movePixels), mousePos.y);
                 break;
+            case 'mouse_position':
+                console.log ('mouse position');
+                ws.send(`mouse_position ${mousePos.x},${mousePos.y}`);
+                break;
             default:
                 console.log ('error occurred');
         }
